@@ -5,12 +5,17 @@ import { Product } from '@/src/types';
 import { Button } from '@/src/components/ui/Button';
 
 interface ProductFormProps {
+  /** Pre-filled values when editing. Empty `{}` for a new product. */
   initialValues?: Partial<Product>;
+  /** Called with validated form values on submit. */
   onSubmit: (values: any) => void;
+  /** Closes the dialog without saving. */
   onCancel: () => void;
+  /** Shows spinner on submit button. */
   isLoading?: boolean;
 }
 
+/** Yup schema: stock and price must be non-negative numbers. */
 const ProductSchema = Yup.object().shape({
   design: Yup.string().required('Requis'),
   category: Yup.string().required('Requis'),
@@ -18,6 +23,10 @@ const ProductSchema = Yup.object().shape({
   price: Yup.number().min(0, 'Doit être positif').required('Requis'),
 });
 
+/**
+ * Product create/edit form (Formik + Yup).
+ * Same dual-purpose pattern as `ClientForm`.
+ */
 export const ProductForm: React.FC<ProductFormProps> = ({ 
   initialValues, 
   onSubmit, 
@@ -40,7 +49,9 @@ export const ProductForm: React.FC<ProductFormProps> = ({
 
   return (
     <form onSubmit={formik.handleSubmit} className="space-y-4">
+      {/* 2-column grid of form fields — Désignation, Catégorie, Stock, Prix */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        {/* Désignation field — top-left */}
         <div className="space-y-1">
           <label className="text-sm font-medium text-slate-700">Désignation</label>
           <input
@@ -55,6 +66,7 @@ export const ProductForm: React.FC<ProductFormProps> = ({
           )}
         </div>
 
+        {/* Catégorie field — top-right */}
         <div className="space-y-1">
           <label className="text-sm font-medium text-slate-700">Catégorie</label>
           <input
@@ -69,6 +81,7 @@ export const ProductForm: React.FC<ProductFormProps> = ({
           )}
         </div>
 
+        {/* Stock field — bottom-left */}
         <div className="space-y-1">
           <label className="text-sm font-medium text-slate-700">Stock Initial</label>
           <input
@@ -83,6 +96,7 @@ export const ProductForm: React.FC<ProductFormProps> = ({
           )}
         </div>
 
+        {/* Prix Unitaire field — bottom-right */}
         <div className="space-y-1">
           <label className="text-sm font-medium text-slate-700">Prix Unitaire</label>
           <input
@@ -98,6 +112,7 @@ export const ProductForm: React.FC<ProductFormProps> = ({
         </div>
       </div>
 
+      {/* Footer buttons — right-aligned: Cancel + Submit */}
       <div className="flex justify-end gap-3 pt-4">
         <Button variant="outline" onClick={onCancel} type="button">
           Annuler

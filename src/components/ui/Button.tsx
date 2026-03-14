@@ -2,12 +2,30 @@ import React from 'react';
 import { cn } from '../../utils/format';
 import { Loader2 } from 'lucide-react';
 
+/**
+ * Extended button props with custom styling and loading support.
+ */
 interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
+  /** Visual style: `primary` (blue bg), `outline` (white bordered), `ghost` (transparent), `danger` (red bg). */
   variant?: 'primary' | 'outline' | 'ghost' | 'danger';
+  /** Size: `sm`, `md` (default), or `lg`. */
   size?: 'sm' | 'md' | 'lg';
+  /** When `true`, shows a spinner and disables the button. */
   isLoading?: boolean;
 }
 
+/**
+ * Reusable button component with variant styling and loading state.
+ *
+ * **Important:** The default `type` is set to `"button"` (not `"submit"`)
+ * to prevent accidental form submissions when used inside `<form>` tags.
+ * Use `type="submit"` explicitly on buttons that should submit forms.
+ *
+ * @example
+ * <Button variant="danger" isLoading={isDeleting} onClick={handleDelete}>
+ *   Delete
+ * </Button>
+ */
 export const Button: React.FC<ButtonProps> = ({
   children,
   className,
@@ -32,6 +50,7 @@ export const Button: React.FC<ButtonProps> = ({
 
   return (
     <button
+      type={props.type || 'button'}
       className={cn(
         'inline-flex items-center justify-center rounded-lg font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed',
         variants[variant],

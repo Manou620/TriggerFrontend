@@ -10,6 +10,17 @@ import { ProductForm } from '../components/ProductForm';
 import { Product } from '@/src/types';
 import { ConfirmDialog } from '@/src/components/ui/ConfirmDialog';
 
+/**
+ * Products management page (route: `/produits`).
+ *
+ * Displays products in a **data table** with columns:
+ * Product (icon + name), Category, Stock (red if < 20), Price, Actions.
+ *
+ * Features: search, select all, bulk delete, inline edit/delete buttons,
+ * add/edit dialog with `ProductForm`, and a confirmation dialog for deletions.
+ *
+ * Same state pattern as `ClientsPage` — see its JSDoc for details.
+ */
 const ProduitsPage: React.FC = () => {
   const { 
     products, 
@@ -113,12 +124,16 @@ const ProduitsPage: React.FC = () => {
 
   return (
     <div className="space-y-6">
+      {/* Page header row — title (left) + bulk delete / add product buttons (right) */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        {/* Title block */}
         <div>
           <h1 className="text-2xl font-bold text-slate-900 dark:text-white">Gestion des Produits</h1>
           <p className="text-slate-500">Gérez votre inventaire et vos références</p>
         </div>
+        {/* Action buttons — right side */}
         <div className="flex items-center gap-3">
+          {/* Bulk delete button — only visible when rows are selected */}
           {selectedIds.length > 0 && (
             <button 
               onClick={confirmBulkDelete}
@@ -128,6 +143,7 @@ const ProduitsPage: React.FC = () => {
               Supprimer ({selectedIds.length})
             </button>
           )}
+          {/* "Nouveau Produit" button — opens the add dialog */}
           <button 
             onClick={handleOpenAdd}
             className="flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition-colors font-medium shadow-sm"
@@ -138,8 +154,11 @@ const ProduitsPage: React.FC = () => {
         </div>
       </div>
 
+      {/* Main card — wraps search bar, filter, and product table */}
       <Card className="p-0 overflow-hidden">
+        {/* Search + filter row — inside the card, above the table */}
         <div className="p-4 border-b border-slate-100 dark:border-slate-800 flex flex-col md:flex-row gap-4">
+          {/* Search input */}
           <div className="relative flex-1">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
             <input 
@@ -150,6 +169,7 @@ const ProduitsPage: React.FC = () => {
               className="w-full pl-10 pr-4 py-2 bg-slate-50 dark:bg-slate-900 border-none rounded-lg focus:ring-2 focus:ring-blue-500 outline-none text-sm"
             />
           </div>
+          {/* Filter button — placeholder */}
           <div className="flex gap-2">
             <button className="flex items-center gap-2 px-3 py-2 text-sm font-medium text-slate-600 bg-white border border-slate-200 rounded-lg hover:bg-slate-50">
               <Filter className="w-4 h-4" />
@@ -158,8 +178,10 @@ const ProduitsPage: React.FC = () => {
           </div>
         </div>
 
+        {/* Scrollable product table */}
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse">
+            {/* Table header — select-all checkbox + column labels */}
             <thead>
               <tr className="bg-slate-50 dark:bg-slate-900/50 border-b border-slate-100 dark:border-slate-800">
                 <th className="px-6 py-4 w-10">
@@ -178,8 +200,10 @@ const ProduitsPage: React.FC = () => {
                 <th className="px-6 py-4 text-xs font-semibold text-slate-500 uppercase tracking-wider text-right">Actions</th>
               </tr>
             </thead>
+            {/* Table body — one row per product */}
             <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
               {filteredProducts.map((product) => (
+                /* Single product row — checkbox, name+icon, category badge, stock, price, edit/delete */
                 <tr 
                   key={product.id} 
                   className={`hover:bg-slate-50/50 dark:hover:bg-slate-800/50 transition-colors ${selectedIds.includes(product.id) ? 'bg-blue-50/30 dark:bg-blue-900/10' : ''}`}
@@ -214,8 +238,10 @@ const ProduitsPage: React.FC = () => {
                   <td className="px-6 py-4 text-slate-600 dark:text-slate-400">
                     {formatCurrency(product.price)}
                   </td>
+                  {/* Actions cell — edit + delete buttons, right-aligned */}
                   <td className="px-6 py-4 text-right">
                     <div className="flex justify-end gap-2">
+                      {/* Edit button */}
                       <button 
                         onClick={() => handleOpenEdit(product)}
                         className="p-1.5 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
@@ -237,6 +263,7 @@ const ProduitsPage: React.FC = () => {
         </div>
       </Card>
 
+      {/* Add/Edit dialog — MUI Dialog containing ProductForm */}
       <Dialog 
         open={isFormOpen} 
         onClose={() => setIsFormOpen(false)}
@@ -258,6 +285,7 @@ const ProduitsPage: React.FC = () => {
         </DialogContent>
       </Dialog>
 
+      {/* Delete confirmation dialog — used for single and bulk delete */}
       <ConfirmDialog
         isOpen={deleteConfirm.isOpen}
         title={deleteConfirm.isBulk ? "Suppression groupée" : "Supprimer le produit"}

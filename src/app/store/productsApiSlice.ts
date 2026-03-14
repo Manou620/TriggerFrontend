@@ -2,12 +2,21 @@ import { createEntityAdapter, createSelector, EntityState } from '@reduxjs/toolk
 import { apiSlice } from './apiSlice';
 import { Product } from '../../types';
 
+/**
+ * Entity Adapter for products.
+ * Sorts products alphabetically by `design` (product name) by default.
+ */
 const productsAdapter = createEntityAdapter<Product>({
   sortComparer: (a, b) => a.design.localeCompare(b.design),
 });
 
 const initialState = productsAdapter.getInitialState();
 
+/**
+ * RTK Query endpoints for **Product** CRUD operations.
+ * Same pattern as `clientsApiSlice`: optimistic updates on PATCH/DELETE.
+ * See `clientsApiSlice.ts` for a detailed explanation of the pattern.
+ */
 export const productsApiSlice = apiSlice.injectEndpoints({
   endpoints: (builder) => ({
     getProducts: builder.query<EntityState<Product, string>, void>({
@@ -80,7 +89,8 @@ export const {
   useDeleteProductMutation,
 } = productsApiSlice;
 
-// Selectors
+// ─── Selectors ──────────────────────────────────────────────────────
+// Allow reading product data from the Redux store via `useSelector`.
 export const selectProductsResult = productsApiSlice.endpoints.getProducts.select();
 
 const selectProductsData = createSelector(

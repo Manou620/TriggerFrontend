@@ -2,12 +2,24 @@ import { createEntityAdapter, createSelector, EntityState } from '@reduxjs/toolk
 import { apiSlice } from './apiSlice';
 import { Sale } from '../../types';
 
+/**
+ * Entity Adapter for sales.
+ * Sorts sales by date **descending** (newest first) via `b.date.localeCompare(a.date)`.
+ */
 const salesAdapter = createEntityAdapter<Sale>({
   sortComparer: (a, b) => b.date.localeCompare(a.date),
 });
 
 const initialState = salesAdapter.getInitialState();
 
+/**
+ * RTK Query endpoints for **Sale** CRUD operations.
+ *
+ * Key differences from `clientsApiSlice`:
+ * - `addSale` auto-injects `date` (now) and `status: 'En attente'` into the body.
+ * - Mutations also invalidate `{ type: 'Audit', id: 'LIST' }` so the audit log
+ *   is refreshed after every sale change.
+ */
 export const salesApiSlice = apiSlice.injectEndpoints({
   endpoints: (builder) => ({
     getSales: builder.query<EntityState<Sale, string>, void>({

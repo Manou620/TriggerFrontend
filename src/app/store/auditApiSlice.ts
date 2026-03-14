@@ -2,12 +2,24 @@ import { createEntityAdapter, createSelector, EntityState } from '@reduxjs/toolk
 import { apiSlice } from './apiSlice';
 import { AuditEntry } from '../../types';
 
+/**
+ * Entity Adapter for audit entries.
+ * Sorted by `dateMiseAJour` descending (most recent operation first).
+ */
 const auditAdapter = createEntityAdapter<AuditEntry>({
   sortComparer: (a, b) => b.dateMiseAJour.localeCompare(a.dateMiseAJour),
 });
 
 const initialState = auditAdapter.getInitialState();
 
+/**
+ * RTK Query endpoints for the **Audit Log**.
+ *
+ * The audit log is mostly **read-only** from the user's perspective:
+ * - `getAudit` → displayed on the Audit page.
+ * - `addAuditEntry` → called programmatically by `useVentes` whenever
+ *   a sale is created, updated, or deleted. It auto-injects the timestamp.
+ */
 export const auditApiSlice = apiSlice.injectEndpoints({
   endpoints: (builder) => ({
     getAudit: builder.query<EntityState<AuditEntry, string>, void>({

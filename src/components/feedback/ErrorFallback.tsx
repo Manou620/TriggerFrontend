@@ -3,11 +3,29 @@ import { AlertTriangle, Home, RefreshCcw } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 interface ErrorFallbackProps {
+  /** Determines the displayed heading: '404' (not found), '500' (server error), or 'generic'. */
   type?: '404' | '500' | 'generic';
+  /** The error object — shown in dev mode as JSON for debugging. */
   error?: any;
+  /** If provided, renders a "Réessayer" (Retry) button that calls this callback. */
   resetErrorBoundary?: () => void;
 }
 
+/**
+ * Full-page error display shown when data fetching fails or a route is not found.
+ *
+ * **Three modes:**
+ * - `404` → "Page non trouvée" (shown for unknown routes).
+ * - `500` → "Erreur serveur" (shown for API failures).
+ * - `generic` → fallback for unhandled errors.
+ *
+ * In **development mode**, the raw error JSON is displayed at the bottom
+ * to make debugging easier. In production, only a user-friendly message is shown.
+ *
+ * Used in two places:
+ * 1. Directly in page components when `isError` is true (e.g. `<ErrorFallback error={error} resetErrorBoundary={refetch} />`).
+ * 2. Inside `GlobalErrorBoundary` for uncaught React rendering errors.
+ */
 export const ErrorFallback: React.FC<ErrorFallbackProps> = ({ type = 'generic', error, resetErrorBoundary }) => {
   const is404 = type === '404' || error?.status === 404;
   const is500 = type === '500' || error?.status === 500;

@@ -2,12 +2,37 @@ import { createEntityAdapter, createSelector, EntityState } from '@reduxjs/toolk
 import { apiSlice } from './apiSlice';
 import { Client } from '../../types';
 
+/**
+ * Redux Entity Adapter for Client entities.
+ *
+ * An Entity Adapter provides a normalized state shape:
+ * `{ ids: ['C1', 'C2'], entities: { C1: {...}, C2: {...} } }`
+ * This avoids duplicating data and makes lookups O(1) by ID.
+ */
 const clientsAdapter = createEntityAdapter<Client>();
 
 const initialState = clientsAdapter.getInitialState();
 
+/**
+ * RTK Query endpoints for **Client** CRUD operations.
+ *
+ * Injected into the base `apiSlice` — this means all client API calls
+ * share the same cache and middleware as every other feature.
+ *
+ * ### Cache invalidation flow:
+ * 1. `getClients` **provides** tags like `{ type: 'Client', id: 'C1' }`.
+ * 2. `addClient` **invalidates** `{ type: 'Client', id: 'LIST' }`.
+ * 3. RTK Query sees the invalidation and automatically re-fetches `getClients`.
+ *
+ * ### Optimistic updates (updateClient / deleteClient):
+ * The UI is updated *immediately* (before the server responds) via
+ * `onQueryStarted`. If the server call fails, `patchResult.undo()` rolls
+ * the cache back to its previous state.
+ */
 export const clientsApiSlice = apiSlice.injectEndpoints({
   endpoints: (builder) => ({
+
+    /** GET /clients → Fetch all clients and normalize into Entity Adapter state. */
     getClients: builder.query<EntityState<Client, string>, void>({
       query: () => '/clients',
       transformResponse: (response: Client[]) => {
@@ -21,6 +46,8 @@ export const clientsApiSlice = apiSlice.injectEndpoints({
             ]
           : [{ type: 'Client', id: 'LIST' }],
     }),
+
+    /** POST /clients → Create a new client. Invalidates the list to trigger refetch. */
     addClient: builder.mutation<Client, Partial<Client>>({
       query: (client) => ({
         url: '/clients',
@@ -29,6 +56,13 @@ export const clientsApiSlice = apiSlice.injectEndpoints({
       }),
       invalidatesTags: [{ type: 'Client', id: 'LIST' }],
     }),
+
+    /**
+     * PATCH /clients/:id → Update an existing client.
+     *
+     * Uses **optimistic update**: the cache is updated immediately,
+     * and rolled back if the server request fails.
+     */
     updateClient: builder.mutation<Client, Partial<Client>>({
       query: (client) => ({
         url: `/clients/${client.id}`,
@@ -37,6 +71,7 @@ export const clientsApiSlice = apiSlice.injectEndpoints({
       }),
       invalidatesTags: (result, error, arg) => [{ type: 'Client', id: arg.id }],
       async onQueryStarted({ id, ...patch }, { dispatch, queryFulfilled }) {
+        // Optimistic update: apply changes immediately
         const patchResult = dispatch(
           clientsApiSlice.util.updateQueryData('getClients', undefined, (draft) => {
             clientsAdapter.updateOne(draft, { id: id!, changes: patch });
@@ -45,10 +80,18 @@ export const clientsApiSlice = apiSlice.injectEndpoints({
         try {
           await queryFulfilled;
         } catch {
+          // Rollback on failure
           patchResult.undo();
         }
       },
     }),
+
+    /**
+     * DELETE /clients/:id → Remove a client.
+     *
+     * Uses **optimistic delete**: the client is removed from the cache
+     * instantly, and restored if the server request fails.
+     */
     deleteClient: builder.mutation<{ success: boolean; id: string }, string>({
       query: (id) => ({
         url: `/clients/${id}`,
@@ -56,6 +99,7 @@ export const clientsApiSlice = apiSlice.injectEndpoints({
       }),
       invalidatesTags: (result, error, id) => [{ type: 'Client', id }],
       async onQueryStarted(id, { dispatch, queryFulfilled }) {
+        // Optimistic delete: remove from cache immediately
         const patchResult = dispatch(
           clientsApiSlice.util.updateQueryData('getClients', undefined, (draft) => {
             clientsAdapter.removeOne(draft, id);
@@ -64,6 +108,7 @@ export const clientsApiSlice = apiSlice.injectEndpoints({
         try {
           await queryFulfilled;
         } catch {
+          // Rollback on failure
           patchResult.undo();
         }
       },
@@ -71,6 +116,7 @@ export const clientsApiSlice = apiSlice.injectEndpoints({
   }),
 });
 
+/** Auto-generated React hooks for each endpoint. Use these in components/hooks. */
 export const {
   useGetClientsQuery,
   useAddClientMutation,
@@ -78,13 +124,24 @@ export const {
   useDeleteClientMutation,
 } = clientsApiSlice;
 
+// ─── Selectors ────────────────────────────────────────────────────────────────
+// These selectors let you read client data from the Redux store outside of
+// the RTK Query hook (e.g., in `useSelector` calls in other features).
+
+/** Selects the raw RTK Query result object for the `getClients` query. */
 export const selectClientsResult = clientsApiSlice.endpoints.getClients.select();
 
+/** Extracts just the `.data` (EntityState) from the query result. */
 const selectClientsData = createSelector(
   selectClientsResult,
   (clientsResult) => clientsResult.data
 );
 
+/**
+ * Memoized entity selectors generated by the adapter.
+ * - `selectAllClients` → returns `Client[]` (flat array).
+ * - `selectClientById` → returns a single `Client | undefined` by ID.
+ */
 export const {
   selectAll: selectAllClients,
   selectById: selectClientById,

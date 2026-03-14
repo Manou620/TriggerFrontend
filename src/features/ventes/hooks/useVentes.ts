@@ -12,6 +12,30 @@ import { useSelector } from 'react-redux';
 import { useNotificationStore } from '@/src/app/store/notification.store';
 import { RootState } from '@/src/app/store';
 
+/**
+ * Custom hook that orchestrates the **entire sales workflow**.
+ *
+ * This is the most complex hook in the app because it coordinates
+ * data from **four** different domains:
+ *
+ * 1. **Sales** — the actual sale records (RTK Query).
+ * 2. **Products** — needed to display product names in the table
+ *    and to validate stock availability in the form.
+ * 3. **Clients** — needed to display client names in the table.
+ * 4. **Audit** — every sale mutation (add/update/delete) automatically
+ *    creates an audit entry via `addAuditEntry`.
+ * 5. **Auth** — the current user's name is logged as `utilisateur` in audit.
+ *
+ * **Why so many queries?**
+ * The sales table needs to resolve `clientId` → client name and
+ * `productId` → product name, so it fetches all three lists.
+ * The `isLoading` flag is only `false` when ALL three queries have resolved.
+ *
+ * **Audit trail:**
+ * Each `handleAddSale`, `handleUpdateSale`, and `handleDeleteSale`
+ * calls `addAudit()` after the sale mutation succeeds, recording the
+ * old/new quantities, client name, product name, and logged-in user.
+ */
 export const useVentes = () => {
   const { isLoading: salesLoading, isError: salesError, error: salesErr, refetch: refetchSales } = useGetSalesQuery();
   const { isLoading: productsLoading } = useGetProductsQuery();

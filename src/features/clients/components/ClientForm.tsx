@@ -5,12 +5,17 @@ import { Client } from '@/src/types';
 import { Button } from '@/src/components/ui/Button';
 
 interface ClientFormProps {
+  /** Pre-filled values when editing an existing client. Empty `{}` for a new client. */
   initialValues?: Partial<Client>;
+  /** Called with the form values on submit (after Yup validation passes). */
   onSubmit: (values: any) => void;
+  /** Closes the dialog without saving. */
   onCancel: () => void;
+  /** Disables the submit button and shows a spinner. */
   isLoading?: boolean;
 }
 
+/** Yup validation schema — all fields are required, email must be valid. */
 const ClientSchema = Yup.object().shape({
   nom: Yup.string().required('Requis'),
   email: Yup.string().email('Email invalide').required('Requis'),
@@ -18,6 +23,14 @@ const ClientSchema = Yup.object().shape({
   adresse: Yup.string().required('Requis'),
 });
 
+/**
+ * Client create/edit form using Formik + Yup validation.
+ *
+ * **Dual-purpose:** If `initialValues.id` exists, the submit button
+ * shows "Modifier"; otherwise, it shows "Ajouter".
+ *
+ * Rendered inside a MUI `<Dialog>` on the ClientsPage.
+ */
 export const ClientForm: React.FC<ClientFormProps> = ({ 
   initialValues, 
   onSubmit, 
@@ -40,7 +53,9 @@ export const ClientForm: React.FC<ClientFormProps> = ({
 
   return (
     <form onSubmit={formik.handleSubmit} className="space-y-4">
+      {/* All form fields — stacked vertically */}
       <div className="space-y-4">
+        {/* Full-width "Nom Complet" field */}
         <div className="space-y-1">
           <label className="text-sm font-medium text-slate-700">Nom Complet</label>
           <input
@@ -55,7 +70,9 @@ export const ClientForm: React.FC<ClientFormProps> = ({
           )}
         </div>
 
+        {/* Email + telephone fields — side by side on md+ */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {/* Email field — left column */}
           <div className="space-y-1">
             <label className="text-sm font-medium text-slate-700">Email</label>
             <input
@@ -70,6 +87,7 @@ export const ClientForm: React.FC<ClientFormProps> = ({
             )}
           </div>
 
+          {/* Teléphone field — right column */}
           <div className="space-y-1">
             <label className="text-sm font-medium text-slate-700">Téléphone</label>
             <input
@@ -85,6 +103,7 @@ export const ClientForm: React.FC<ClientFormProps> = ({
           </div>
         </div>
 
+        {/* Full-width "Adresse" textarea */}
         <div className="space-y-1">
           <label className="text-sm font-medium text-slate-700">Adresse</label>
           <textarea
@@ -100,10 +119,13 @@ export const ClientForm: React.FC<ClientFormProps> = ({
         </div>
       </div>
 
+      {/* Footer buttons — right-aligned: Cancel (outline) + Submit (primary) */}
       <div className="flex justify-end gap-3 pt-4">
+        {/* Cancel button — closes the dialog without saving */}
         <Button variant="outline" onClick={onCancel} type="button">
           Annuler
         </Button>
+        {/* Submit button — "Ajouter" for new, "Modifier" for edit */}
         <Button type="submit" isLoading={isLoading}>
           {initialValues?.id ? 'Modifier' : 'Ajouter'}
         </Button>

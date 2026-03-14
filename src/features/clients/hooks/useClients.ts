@@ -8,6 +8,22 @@ import {
 import { useSelector } from 'react-redux';
 import { useNotificationStore } from '@/src/app/store/notification.store';
 
+/**
+ * Custom hook that provides all client-related data and CRUD operations.
+ *
+ * **Purpose:** Acts as a "facade" between the ClientsPage component and
+ * the RTK Query API slice. This keeps the page component clean by
+ * centralizing error handling, notification dispatching, and loading states.
+ *
+ * **What it returns:**
+ * - `clients` — flat array of all Client objects from the store.
+ * - `handleAddClient(values)` — creates a client + pushes a notification.
+ * - `handleUpdateClient(values)` — updates a client + pushes a notification.
+ * - `handleDeleteClient(id)` — deletes a client + pushes a notification.
+ * - `handleBulkDelete(ids)` — deletes multiple clients in parallel.
+ * - `isAdding`, `isUpdating`, `isDeleting` — loading flags for button spinners.
+ * - `isLoading`, `isError`, `error`, `refetch` — query state from RTK Query.
+ */
 export const useClients = () => {
   const { isLoading, isError, error, refetch } = useGetClientsQuery();
   const clients = useSelector(selectAllClients);

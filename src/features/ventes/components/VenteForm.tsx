@@ -4,14 +4,32 @@ import * as Yup from 'yup';
 import { Product, Client } from '@/src/types';
 
 interface VenteFormProps {
+  /** Pre-filled values for editing. Empty `{}` for a new sale. */
   initialValues?: any;
+  /** Called with validated form values on submit. */
   onSubmit: (values: any) => void;
+  /** Closes the dialog without saving. */
   onCancel: () => void;
+  /** List of all products — used to populate the product `<select>` dropdown and validate stock. */
   products: Product[];
+  /** List of all clients — used to populate the client `<select>` dropdown. */
   clients: Client[];
+  /** Shows spinner on submit button. */
   isLoading?: boolean;
 }
 
+/**
+ * Sale create/edit form (Formik + Yup).
+ *
+ * More complex than ClientForm/ProductForm because:
+ * - It depends on **external data** (products and clients lists) for dropdowns.
+ * - It has a **custom Yup validation** (`stock-check`) that verifies the
+ *   requested quantity doesn't exceed available product stock.
+ * - For edits, the original sale quantity is added back to stock before
+ *   comparing, allowing the user to increase the quantity up to `stock + oldQty`.
+ * - Uses `enableReinitialize: true` so the form updates when `initialValues` change
+ *   (e.g. when the user clicks "Edit" on a different sale row).
+ */
 export const VenteForm: React.FC<VenteFormProps> = ({ 
   initialValues = {}, 
   onSubmit, 
@@ -47,6 +65,7 @@ export const VenteForm: React.FC<VenteFormProps> = ({
 
   return (
     <form onSubmit={formik.handleSubmit} className="space-y-4">
+      {/* Client dropdown — populated from the clients array prop */}
       <div>
         <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Client</label>
         <select 
@@ -64,6 +83,7 @@ export const VenteForm: React.FC<VenteFormProps> = ({
         )}
       </div>
 
+      {/* Product dropdown — shows product name + current stock in each option */}
       <div>
         <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Produit</label>
         <select 
@@ -85,6 +105,7 @@ export const VenteForm: React.FC<VenteFormProps> = ({
         )}
       </div>
 
+      {/* Quantity input — validated against product.stock via custom Yup test */}
       <div>
         <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Quantité</label>
         <input 
@@ -101,7 +122,9 @@ export const VenteForm: React.FC<VenteFormProps> = ({
         )}
       </div>
 
+      {/* Footer buttons — Cancel (left) + Submit (right), both flex-1 equal width */}
       <div className="mt-6 flex gap-3">
+        {/* Cancel button — closes dialog without saving */}
         <button 
           type="button"
           onClick={onCancel}
@@ -110,6 +133,7 @@ export const VenteForm: React.FC<VenteFormProps> = ({
         >
           Annuler
         </button>
+        {/* Submit button — shows spinner while saving */}
         <button 
           type="submit"
           disabled={isLoading}

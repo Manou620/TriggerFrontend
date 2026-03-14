@@ -5,12 +5,22 @@ interface SkeletonProps {
   className?: string;
 }
 
+/**
+ * Base skeleton loader — a single pulsating gray rectangle.
+ * Use custom `className` to set width/height (e.g. `"h-4 w-24"`).
+ */
 export const Skeleton: React.FC<SkeletonProps> = ({ className }) => {
   return (
     <div className={cn("animate-pulse bg-slate-200 dark:bg-slate-800 rounded", className)} />
   );
 };
 
+/**
+ * Table-shaped skeleton: mimics a search bar + table header + N rows.
+ * Shown while data is loading on table-based pages (Produits, Audit, Ventes).
+ *
+ * @param rows - Number of placeholder rows to display (default: 5).
+ */
 export const TableSkeleton: React.FC<{ rows?: number }> = ({ rows = 5 }) => {
   return (
     <div className="space-y-4">
@@ -33,6 +43,10 @@ export const TableSkeleton: React.FC<{ rows?: number }> = ({ rows = 5 }) => {
   );
 };
 
+/**
+ * Card-shaped skeleton: mimics a stat card with title + value + icon.
+ * Used on the Dashboard and Clients pages during initial load.
+ */
 export const CardSkeleton: React.FC = () => {
   return (
     <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 p-6 space-y-4">

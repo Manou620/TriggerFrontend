@@ -10,6 +10,20 @@ interface State {
   error: Error | null;
 }
 
+/**
+ * Top-level React Error Boundary that wraps the entire app in `App.tsx`.
+ *
+ * **What it does:**
+ * If any child component throws an unhandled error during rendering,
+ * this class catches it (via `getDerivedStateFromError`) and renders
+ * the `ErrorFallback` component instead of a blank white screen.
+ *
+ * Clicking "Réessayer" resets the error state and re-renders children.
+ *
+ * **Why a class component?**
+ * React error boundaries can only be implemented as class components —
+ * there is no hook-based equivalent (as of React 19).
+ */
 export class GlobalErrorBoundary extends Component<Props, State> {
   public state: State = {
     hasError: false,

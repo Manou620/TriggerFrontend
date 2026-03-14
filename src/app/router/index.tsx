@@ -1,9 +1,15 @@
-import React from 'react';
+import React, { Suspense, lazy } from 'react';
 import { createBrowserRouter, RouterProvider, Navigate } from 'react-router-dom';
 import { RootLayout } from '../../layouts/RootLayout';
 import { ROUTES } from '../config/constants';
 
-// Lazy load pages
+/**
+ * Lazy-loaded page imports.
+ *
+ * Using `React.lazy()` means these modules are **code-split** into separate
+ * bundles and only downloaded when the user navigates to their route.
+ * This reduces the initial bundle size.
+ */
 const Dashboard = React.lazy(() => import('../../features/audit/pages/Dashboard'));
 const Ventes = React.lazy(() => import('../../features/ventes/pages/VentesPage'));
 const Produits = React.lazy(() => import('../../features/produits/pages/ProduitsPage'));

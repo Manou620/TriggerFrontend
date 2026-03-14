@@ -9,6 +9,15 @@ import { useSelector } from 'react-redux';
 import { toast } from 'react-hot-toast';
 import { useNotificationStore } from '@/src/app/store/notification.store';
 
+/**
+ * Custom hook that wraps all product-related CRUD operations.
+ *
+ * Similar to `useClients`, but also fires `react-hot-toast` popups
+ * **in addition to** in-app notifications (drawer). This means the user
+ * sees both a toast AND a drawer notification after product operations.
+ *
+ * @see useClients — same facade pattern, without toast.
+ */
 export const useProducts = () => {
   const { isLoading, isError, error, refetch } = useGetProductsQuery();
   const products = useSelector(selectAllProducts);

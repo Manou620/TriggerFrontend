@@ -15,6 +15,20 @@ import { TableSkeleton, CardSkeleton } from '@/src/components/feedback/Skeleton'
 import { ErrorFallback } from '@/src/components/feedback/ErrorFallback';
 import { cn } from '@/src/utils/format';
 
+/**
+ * Dashboard page — the application landing page (route: `/`).
+ *
+ * **What it displays:**
+ * - 4 stat cards: total sales, active clients, products in stock, low-stock alerts.
+ * - "Ventes récentes" — last 5 sales with client name lookup.
+ * - "Alertes Stock" — products with stock < 30, with a visual progress bar.
+ *
+ * **Data sources:** Pulls from ALL three features (products, clients, sales)
+ * via their respective hooks. Waits for all three to finish loading before rendering.
+ *
+ * **Note:** The trend percentages (e.g. "+12%") are currently **hardcoded** —
+ * they are not computed from real data. Replace with actual calculations when needed.
+ */
 const Dashboard: React.FC = () => {
   const { products, isLoading: productsLoading, isError: productsError } = useProducts();
   const { clients, isLoading: clientsLoading, isError: clientsError } = useClients();
@@ -55,13 +69,16 @@ const Dashboard: React.FC = () => {
 
   return (
     <div className="space-y-8">
+      {/* Page heading block — title + subtitle at the top */}
       <div>
         <h1 className="text-2xl font-bold text-slate-900 dark:text-white">Tableau de bord</h1>
         <p className="text-slate-500">Bienvenue sur votre interface de gestion StockPro</p>
       </div>
 
+      {/* Stats cards row — 4 cards in a responsive grid below the heading */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         {stats.map((stat, i) => (
+          /* Single stat card — icon (top-right), label + value (top-left), trend (bottom) */
           <Card key={i} className="relative overflow-hidden group">
             <div className="flex items-start justify-between">
               <div>
@@ -87,10 +104,13 @@ const Dashboard: React.FC = () => {
         ))}
       </div>
 
+      {/* Bottom section — two cards side by side (left: recent sales, right: stock alerts) */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        {/* Left card — "Ventes récentes": last 5 sales with client name lookup */}
         <Card title="Ventes récentes" subtitle="Dernières transactions effectuées">
           <div className="space-y-4">
             {sales.slice(0, 5).map((sale) => (
+              /* Single sale row — cart icon + sale ID + client name (left), qty + date (right) */
               <div key={sale.id} className="flex items-center justify-between p-3 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors">
                 <div className="flex items-center gap-3">
                   <div className="w-10 h-10 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center">
@@ -112,9 +132,11 @@ const Dashboard: React.FC = () => {
           </div>
         </Card>
 
+        {/* Right card — "Alertes Stock": products with stock < 30 + visual progress bar */}
         <Card title="Alertes Stock" subtitle="Produits nécessitant un réapprovisionnement">
           <div className="space-y-4">
             {products.filter(p => p.stock < 30).slice(0, 5).map((product) => (
+              /* Single stock alert row — amber icon + product name (left), stock count + progress bar (right) */
               <div key={product.id} className="flex items-center justify-between p-3 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors">
                 <div className="flex items-center gap-3">
                   <div className="w-10 h-10 rounded-full bg-amber-50 dark:bg-amber-900/20 flex items-center justify-center">
