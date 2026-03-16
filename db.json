@@ -1,136 +1,57 @@
 {
-  "products": [
+  "produits": [
     {
-      "id": "P3",
-      "design": "Sony WH-1000XM5",
-      "stock": 28,
-      "category": "Audio",
-      "price": 350
-    },
-    {
-      "id": "ba36",
-      "design": "zCxzcxz",
-      "category": "cxbxvbvc",
-      "stock": 4,
-      "price": 4
+      "id": 2,
+      "design": "Iphone",
+      "category": "smartphone",
+      "stock": 10,
+      "price": 1200
     }
   ],
   "clients": [
     {
-      "id": "C2",
+      "id": 1,
       "nom": "Bob Durand",
       "email": "bob@example.com",
       "telephone": "0687654321",
       "adresse": "45 Avenue des Champs, 75008 Paris"
     },
     {
-      "id": "C3",
-      "nom": "Charlie Leroy",
-      "email": "charlie@example.com",
-      "telephone": "0655443322",
-      "adresse": "78 Boulevard Saint-Germain, 75005 Paris"
-    },
-    {
-      "id": "C4",
-      "nom": "David Petit",
-      "email": "david@example.com",
-      "telephone": "0611223344",
-      "adresse": "10 Rue de la Paix, 75002 Paris"
-    },
-    {
-      "id": "7593",
-      "nom": "zvxb",
-      "email": "cxbcxb@dd.cin",
-      "telephone": "4561513513",
-      "adresse": "dfdsgg"
+      "id": 2,
+      "nom": "RALLLLLYYYYYYYYYY",
+      "email": "zaka@gmail.com",
+      "telephone": "0383098799",
+      "adresse": "Ambositra"
     }
   ],
-  "sales": [
+  "ventes": [
     {
-      "id": "2fd8",
-      "clientId": "C3",
-      "productId": "P3",
-      "qteSortie": 1,
-      "date": "2026-03-14T20:04:08.233Z",
-      "status": "En attente"
-    },
-    {
-      "id": "a294",
-      "clientId": "C2",
-      "productId": "P3",
+      "id": 1,
+      "clientId": 1,
+      "productId": 1,
       "qteSortie": 1,
       "date": "2026-03-14T20:22:44.183Z",
       "status": "En attente"
     },
     {
-      "id": "fd5f",
-      "clientId": "C4",
-      "productId": "ba36",
+      "id": 2,
+      "clientId": 2,
+      "productId": 2,
       "qteSortie": 1,
-      "date": "2026-03-14T20:22:58.470Z",
+      "date": "2026-03-15T18:14:50.476Z",
       "status": "En attente"
     }
   ],
   "audit": [
     {
-      "id": "A1",
+      "id": 1,
       "typeOperation": "AJOUT",
       "dateMiseAJour": "2024-03-10T10:30:00Z",
-      "nomClient": "Alice Martin",
-      "designProduit": "iPhone 15 Pro",
-      "qteSortieAncien": 0,
-      "qteSortieNouv": 2,
-      "utilisateur": "Jean Dupont"
-    },
-    {
-      "id": "5714",
-      "typeOperation": "SUPPRESSION",
-      "nomClient": "Alice Martin",
-      "designProduit": "Sony WH-1000XM5",
-      "qteSortieAncien": 1,
-      "qteSortieNouv": 0,
-      "utilisateur": "Jean Dupont",
-      "dateMiseAJour": "2026-03-14T19:33:10.615Z"
-    },
-    {
-      "id": "f9ce",
-      "typeOperation": "AJOUT",
-      "nomClient": "Charlie Leroy",
-      "designProduit": "Sony WH-1000XM5",
-      "qteSortieAncien": 0,
-      "qteSortieNouv": 1,
-      "utilisateur": "Jean Dupont",
-      "dateMiseAJour": "2026-03-14T20:04:08.294Z"
-    },
-    {
-      "id": "8ce2",
-      "typeOperation": "AJOUT",
       "nomClient": "Bob Durand",
       "designProduit": "Sony WH-1000XM5",
       "qteSortieAncien": 0,
       "qteSortieNouv": 1,
-      "utilisateur": "Jean Dupont",
-      "dateMiseAJour": "2026-03-14T20:22:44.241Z"
-    },
-    {
-      "id": "c1e2",
-      "typeOperation": "SUPPRESSION",
-      "nomClient": "Inconnu",
-      "designProduit": "Inconnu",
-      "qteSortieAncien": 2,
-      "qteSortieNouv": 0,
-      "utilisateur": "Jean Dupont",
-      "dateMiseAJour": "2026-03-14T20:22:49.015Z"
-    },
-    {
-      "id": "5bca",
-      "typeOperation": "AJOUT",
-      "nomClient": "David Petit",
-      "designProduit": "zCxzcxz",
-      "qteSortieAncien": 0,
-      "qteSortieNouv": 1,
-      "utilisateur": "Jean Dupont",
-      "dateMiseAJour": "2026-03-14T20:22:58.512Z"
+      "utilisateur": "Jean Dupont"
     }
   ],
   "$schema": "./node_modules/json-server/schema.json"

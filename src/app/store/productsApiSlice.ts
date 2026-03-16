@@ -19,22 +19,27 @@ const initialState = productsAdapter.getInitialState();
  */
 export const productsApiSlice = apiSlice.injectEndpoints({
   endpoints: (builder) => ({
-    getProducts: builder.query<EntityState<Product, string>, void>({
-      query: () => '/products',
-      transformResponse: (response: Product[]) => {
-        return productsAdapter.setAll(initialState, response);
+    getProducts: builder.query<EntityState<Product, number>, void>({
+      query: () => '/produits',
+      transformResponse: (response: any) => {
+        const data = Array.isArray(response) ? response : (response?.data || response?.produits || response?.products || []);
+        const transformedData = data.map((product: any) => ({
+          ...product,
+          id: Number(product.id)
+        }));
+        return productsAdapter.setAll(initialState, transformedData);
       },
       providesTags: (result) =>
         result
           ? [
-              ...result.ids.map((id) => ({ type: 'Product' as const, id })),
-              { type: 'Product', id: 'LIST' },
-            ]
+            ...result.ids.map((id) => ({ type: 'Product' as const, id })),
+            { type: 'Product', id: 'LIST' },
+          ]
           : [{ type: 'Product', id: 'LIST' }],
     }),
     addProduct: builder.mutation<Product, Partial<Product>>({
       query: (product) => ({
-        url: '/products',
+        url: '/produits',
         method: 'POST',
         body: product,
       }),
@@ -42,11 +47,14 @@ export const productsApiSlice = apiSlice.injectEndpoints({
     }),
     updateProduct: builder.mutation<Product, Partial<Product>>({
       query: (product) => ({
-        url: `/products/${product.id}`,
+        url: `/produits/${product.id}`,
         method: 'PATCH',
         body: product,
       }),
-      invalidatesTags: (result, error, arg) => [{ type: 'Product', id: arg.id }],
+      invalidatesTags: (result, error, arg) => [
+        { type: 'Product', id: arg.id }, 
+        { type: 'Audit', id: 'STATS' }
+      ],
       async onQueryStarted({ id, ...patch }, { dispatch, queryFulfilled }) {
         const patchResult = dispatch(
           productsApiSlice.util.updateQueryData('getProducts', undefined, (draft) => {
@@ -60,9 +68,9 @@ export const productsApiSlice = apiSlice.injectEndpoints({
         }
       },
     }),
-    deleteProduct: builder.mutation<{ success: boolean; id: string }, string>({
+    deleteProduct: builder.mutation<{ success: boolean; id: number }, number>({
       query: (id) => ({
-        url: `/products/${id}`,
+        url: `/produits/${id}`,
         method: 'DELETE',
       }),
       invalidatesTags: (result, error, id) => [{ type: 'Product', id }],

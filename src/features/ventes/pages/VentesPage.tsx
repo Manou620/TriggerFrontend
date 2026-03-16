@@ -29,21 +29,21 @@ const VentesPage: React.FC = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingSale, setEditingSale] = useState<Sale | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
-  const [selectedIds, setSelectedIds] = useState<string[]>([]);
-  const [confirmDelete, setConfirmDelete] = useState<{ isOpen: boolean; id: string | null; isBulk: boolean }>({
+  const [selectedIds, setSelectedIds] = useState<number[]>([]);
+  const [confirmDelete, setConfirmDelete] = useState<{ isOpen: boolean; id: number | null; isBulk: boolean }>({
     isOpen: false,
     id: null,
     isBulk: false,
   });
 
-  const { 
-    sales, 
-    products, 
-    clients, 
-    isLoading, 
-    isError, 
-    error, 
-    refetch, 
+  const {
+    sales,
+    products,
+    clients,
+    isLoading,
+    isError,
+    error,
+    refetch,
     handleAddSale,
     handleUpdateSale,
     handleDeleteSale,
@@ -53,14 +53,21 @@ const VentesPage: React.FC = () => {
     isDeleting
   } = useVentes();
 
+  // DEBUG: Let the user see the raw data in their browser console
+  // React.useEffect(() => {
+  //   if (sales.length > 0) {
+  //     console.log('[DEBUG] Raw Sales in Page:', sales.slice(0, 3));
+  //   }
+  // }, [sales]);
+
   const filteredSales = useMemo(() => {
     return sales.filter(sale => {
-      const client = clients.find(c => c.id === sale.clientId);
-      const product = products.find(p => p.id === sale.productId);
+      const client = clients.find(c => c.id == sale.clientId);
+      const product = products.find(p => p.id == sale.productId);
       const searchStr = searchQuery.toLowerCase();
-      
+
       return (
-        sale.id.toLowerCase().includes(searchStr) ||
+        String(sale.id).toLowerCase().includes(searchStr) ||
         client?.nom.toLowerCase().includes(searchStr) ||
         product?.design.toLowerCase().includes(searchStr) ||
         sale.status.toLowerCase().includes(searchStr)
@@ -86,13 +93,15 @@ const VentesPage: React.FC = () => {
         await handleAddSale(values);
       }
       setIsModalOpen(false);
+      setEditingSale(null);
     } catch (err) {
-      // Error handled in hook
+      // Error handled in hook (toasts/notifications)
+      // Keep modal open so user can correct errors
     }
   };
 
-  const toggleSelection = (id: string) => {
-    setSelectedIds(prev => 
+  const toggleSelection = (id: number) => {
+    setSelectedIds(prev =>
       prev.includes(id) ? prev.filter(i => i !== id) : [...prev, id]
     );
   };
@@ -105,7 +114,7 @@ const VentesPage: React.FC = () => {
     }
   };
 
-  const openDeleteConfirm = (id: string) => {
+  const openDeleteConfirm = (id: number) => {
     setConfirmDelete({ isOpen: true, id, isBulk: false });
   };
 
@@ -149,7 +158,7 @@ const VentesPage: React.FC = () => {
         <div className="flex items-center gap-2">
           {/* Bulk delete button — only visible when rows are selected */}
           {selectedIds.length > 0 && (
-            <button 
+            <button
               onClick={openBulkDeleteConfirm}
               className="flex items-center gap-2 px-4 py-2 bg-red-50 text-red-600 rounded-lg text-sm font-medium hover:bg-red-100 transition-colors"
             >
@@ -158,7 +167,7 @@ const VentesPage: React.FC = () => {
             </button>
           )}
           {/* "Nouvelle Vente" button — opens the add dialog */}
-          <button 
+          <button
             onClick={handleOpenAdd}
             className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 transition-colors shadow-sm"
           >
@@ -175,18 +184,18 @@ const VentesPage: React.FC = () => {
           {/* Search input */}
           <div className="flex-1 flex items-center gap-2 bg-slate-50 dark:bg-slate-800/50 px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-800">
             <Search className="w-4 h-4 text-slate-400" />
-            <input 
-              type="text" 
-              placeholder="Rechercher une vente (ID, client, produit)..." 
+            <input
+              type="text"
+              placeholder="Rechercher une vente (ID, client, produit)..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="bg-transparent border-none outline-none text-sm w-full" 
+              className="bg-transparent border-none outline-none text-sm w-full"
             />
           </div>
           {/* Select-all + filter buttons */}
           <div className="flex gap-2">
             {/* "Tout sélectionner" toggle */}
-            <button 
+            <button
               onClick={toggleSelectAll}
               className="flex items-center gap-2 px-4 py-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg text-sm font-medium hover:bg-slate-50 transition-colors"
             >
@@ -223,8 +232,8 @@ const VentesPage: React.FC = () => {
             </thead>
             <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
               {filteredSales.map((sale) => {
-                const client = clients.find(c => c.id === sale.clientId);
-                const product = products.find(p => p.id === sale.productId);
+                const client = clients.find(c => c.id == sale.clientId);
+                const product = products.find(p => p.id == sale.productId);
                 const isSelected = selectedIds.includes(sale.id);
                 return (
                   /* Single sale row — checkbox, ID, date, client name, product name, qty, status badge, actions */
@@ -233,7 +242,7 @@ const VentesPage: React.FC = () => {
                     isSelected && "bg-blue-50/30 dark:bg-blue-900/10"
                   )}>
                     <td className="py-4 px-4">
-                      <button 
+                      <button
                         onClick={() => toggleSelection(sale.id)}
                         className="text-slate-400 hover:text-blue-600 transition-colors"
                       >
@@ -247,10 +256,14 @@ const VentesPage: React.FC = () => {
                     <td className="py-4 px-4 text-sm font-mono text-slate-500">{sale.id}</td>
                     <td className="py-4 px-4 text-sm text-slate-600 dark:text-slate-400">{formatDate(sale.date)}</td>
                     <td className="py-4 px-4">
-                      <span className="text-sm font-medium text-slate-900 dark:text-white">{client?.nom || sale.clientId}</span>
+                      <span className="text-sm font-medium text-slate-900 dark:text-white">
+                        {client?.nom || (sale as any).nom || `ID Client: ${sale.clientId}`}
+                      </span>
                     </td>
                     <td className="py-4 px-4">
-                      <span className="text-sm text-slate-600 dark:text-slate-400">{product?.design || sale.productId}</span>
+                      <span className="text-sm text-slate-600 dark:text-slate-400">
+                        {product?.design || (sale as any).design || (sale as any).designation || `ID Produit: ${sale.productId}`}
+                      </span>
                     </td>
                     <td className="py-4 px-4 text-center">
                       <span className="text-sm font-bold text-slate-900 dark:text-white">{sale.qteSortie}</span>
@@ -267,13 +280,13 @@ const VentesPage: React.FC = () => {
                     <td className="py-4 px-4 text-right">
                       <div className="flex items-center justify-end gap-2">
                         {/* Edit button */}
-                        <button 
+                        <button
                           onClick={() => handleOpenEdit(sale)}
                           className="p-1.5 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
                         >
                           <Edit2 className="w-4 h-4" />
                         </button>
-                        <button 
+                        <button
                           onClick={() => openDeleteConfirm(sale.id)}
                           className="p-1.5 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
                         >
@@ -301,8 +314,8 @@ const VentesPage: React.FC = () => {
       </Card>
 
       {/* Add/Edit dialog — MUI Dialog containing VenteForm */}
-      <Dialog 
-        open={isModalOpen} 
+      <Dialog
+        open={isModalOpen}
         onClose={() => setIsModalOpen(false)}
         maxWidth="sm"
         fullWidth
@@ -312,10 +325,10 @@ const VentesPage: React.FC = () => {
         </DialogTitle>
         <DialogContent>
           <div className="pt-4">
-            <VenteForm 
+            <VenteForm
               initialValues={editingSale || {}}
-              onSubmit={onFormSubmit} 
-              onCancel={() => setIsModalOpen(false)} 
+              onSubmit={onFormSubmit}
+              onCancel={() => setIsModalOpen(false)}
               products={products}
               clients={clients}
               isLoading={isAdding || isUpdating}
@@ -328,7 +341,7 @@ const VentesPage: React.FC = () => {
       <ConfirmDialog
         isOpen={confirmDelete.isOpen}
         title={confirmDelete.isBulk ? "Supprimer les ventes" : "Supprimer la vente"}
-        message={confirmDelete.isBulk 
+        message={confirmDelete.isBulk
           ? `Êtes-vous sûr de vouloir supprimer les ${selectedIds.length} ventes sélectionnées ? Cette action est irréversible.`
           : "Êtes-vous sûr de vouloir supprimer cette vente ? Cette action est irréversible."
         }

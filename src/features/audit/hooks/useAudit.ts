@@ -1,32 +1,53 @@
-import { useGetAuditQuery, selectAllAudit } from '../../../app/store/auditApiSlice';
+import { useGetAuditQuery, selectAllAudit, useGetStatsQuery } from '../../../app/store/auditApiSlice';
 import { useSelector } from 'react-redux';
 
 /**
  * Custom hook for the Audit page.
  *
- * Fetches all audit entries and computes aggregate statistics:
+ * This hook now retrieves statistics directly from the backend via `useGetStatsQuery`.
  * - `stats.insert` — count of AJOUT operations.
  * - `stats.update` — count of MODIFICATION operations.
  * - `stats.delete` — count of SUPPRESSION operations.
  *
- * These stats are displayed as colored cards at the bottom of the Audit page.
+ * The `stats` mapping handles the potential naming differences between frontend (insert) 
+ * and backend (insertions).
  */
 export const useAudit = () => {
-  const { isLoading, isError, error, refetch } = useGetAuditQuery();
+  const { 
+    isLoading: isAuditLoading, 
+    isError: isAuditError, 
+    error: auditError, 
+    refetch: refetchAudit 
+  } = useGetAuditQuery();
+
+  const {
+    data: rawStats,
+    isLoading: isStatsLoading,
+    isError: isStatsError,
+    error: statsError,
+    refetch: refetchStats
+  } = useGetStatsQuery(undefined, { refetchOnMountOrArgChange: true });
+
   const auditData = useSelector(selectAllAudit);
 
+  // Map backend property names to frontend UI expectations
   const stats = {
-    insert: auditData.filter(a => a.typeOperation === 'AJOUT').length,
-    update: auditData.filter(a => a.typeOperation === 'MODIFICATION').length,
-    delete: auditData.filter(a => a.typeOperation === 'SUPPRESSION').length,
+    insert: rawStats?.insertions ?? 0,
+    update: rawStats?.modifications ?? 0,
+    delete: rawStats?.suppressions ?? 0,
+  };
+
+  const refetch = () => {
+    refetchAudit();
+    refetchStats();
   };
 
   return {
     auditData,
     stats,
-    isLoading,
-    isError,
-    error,
+    isLoading: isAuditLoading || isStatsLoading,
+    isError: isAuditError || isStatsError,
+    error: auditError || statsError,
     refetch
   };
 };

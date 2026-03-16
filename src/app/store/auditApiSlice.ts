@@ -22,18 +22,45 @@ const initialState = auditAdapter.getInitialState();
  */
 export const auditApiSlice = apiSlice.injectEndpoints({
   endpoints: (builder) => ({
-    getAudit: builder.query<EntityState<AuditEntry, string>, void>({
+    getAudit: builder.query<EntityState<AuditEntry, number>, void>({
       query: () => '/audit',
-      transformResponse: (response: AuditEntry[]) => {
-        return auditAdapter.setAll(initialState, response);
+      transformResponse: (response: any) => {
+        const data = Array.isArray(response) ? response : (response?.data || response?.audit || []);
+        return auditAdapter.setAll(initialState, data.map((entry: any) => {
+          let typeOp = String(entry.typeOperation ?? entry.type_operation ?? 'AJOUT').toUpperCase();
+          
+          // Map backend variants to frontend expected constants
+          if (typeOp.includes('INSERT') || typeOp.includes('AJOUT')) typeOp = 'AJOUT';
+          else if (typeOp.includes('UPDATE') || typeOp.includes('MODIF') || typeOp.includes('PATCH')) typeOp = 'MODIFICATION';
+          else if (typeOp.includes('DELETE') || typeOp.includes('SUPPR') || typeOp.includes('REMOVE')) typeOp = 'SUPPRESSION';
+
+          return {
+            ...entry,
+            id: Number(entry.id),
+            typeOperation: typeOp,
+            dateMiseAJour: entry.dateMiseAJour ?? entry.date_mise_a_jour ?? entry.created_at ?? new Date().toISOString()
+          };
+        }));
       },
       providesTags: (result) =>
         result
           ? [
-              ...result.ids.map((id) => ({ type: 'Audit' as const, id })),
-              { type: 'Audit', id: 'LIST' },
-            ]
+            ...result.ids.map((id) => ({ type: 'Audit' as const, id })),
+            { type: 'Audit', id: 'LIST' },
+          ]
           : [{ type: 'Audit', id: 'LIST' }],
+    }),
+    getStats: builder.query<{ insertions: string | number; modifications: string | number; suppressions: string | number }, void>({
+      query: () => '/audit/stats',
+      transformResponse: (response: any) => {
+        // Normalizing the response format just in case
+        return {
+          insertions: response.insertions ?? response.insert ?? 0,
+          modifications: response.modifications ?? response.update ?? 0,
+          suppressions: response.suppressions ?? response.delete ?? 0
+        };
+      },
+      providesTags: [{ type: 'Audit', id: 'STATS' }],
     }),
     addAuditEntry: builder.mutation<AuditEntry, Partial<AuditEntry>>({
       query: (entry) => ({
@@ -41,13 +68,14 @@ export const auditApiSlice = apiSlice.injectEndpoints({
         method: 'POST',
         body: { ...entry, dateMiseAJour: new Date().toISOString() },
       }),
-      invalidatesTags: [{ type: 'Audit', id: 'LIST' }],
+      invalidatesTags: [{ type: 'Audit', id: 'LIST' }, { type: 'Audit', id: 'STATS' }],
     }),
   }),
 });
 
 export const {
   useGetAuditQuery,
+  useGetStatsQuery,
   useAddAuditEntryMutation,
 } = auditApiSlice;
 

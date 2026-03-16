@@ -8,7 +8,9 @@
     "build": "vite build",
     "preview": "vite preview",
     "clean": "rm -rf dist",
-    "lint": "tsc --noEmit"
+    "lint": "tsc --noEmit",
+    "dev:mock": "cross-env BACKEND_MODE=mock tsx server.ts",
+    "dev:real": "cross-env BACKEND_MODE=real tsx server.ts"
   },
   "dependencies": {
     "@emotion/react": "^11.14.0",
@@ -42,6 +44,7 @@
     "@types/express": "^4.17.21",
     "@types/node": "^22.14.0",
     "autoprefixer": "^10.4.21",
+    "cross-env": "^10.1.0",
     "tailwindcss": "^4.1.14",
     "tsx": "^4.21.0",
     "typescript": "~5.8.2",

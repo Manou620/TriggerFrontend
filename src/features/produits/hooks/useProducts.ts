@@ -1,9 +1,9 @@
-import { 
-  useGetProductsQuery, 
-  selectAllProducts, 
-  useAddProductMutation, 
-  useUpdateProductMutation, 
-  useDeleteProductMutation 
+import {
+  useGetProductsQuery,
+  selectAllProducts,
+  useAddProductMutation,
+  useUpdateProductMutation,
+  useDeleteProductMutation
 } from '../../../app/store/productsApiSlice';
 import { useSelector } from 'react-redux';
 import { toast } from 'react-hot-toast';
@@ -65,7 +65,7 @@ export const useProducts = () => {
     }
   };
 
-  const handleDeleteProduct = async (id: string) => {
+  const handleDeleteProduct = async (id: number) => {
     const product = products.find(p => p.id === id);
     try {
       await deleteProduct(id).unwrap();
@@ -76,7 +76,7 @@ export const useProducts = () => {
         type: 'success'
       });
     } catch (err) {
-      toast.error('Erreur lors de la suppression');
+      toast.error('Erreur lors de la suppression, le produit est peut-etre utilisé');
       addNotification({
         title: 'Erreur Suppression',
         message: `Impossible de supprimer le produit ${product?.design || id}.`,
@@ -85,7 +85,7 @@ export const useProducts = () => {
     }
   };
 
-  const handleBulkDelete = async (ids: string[]) => {
+  const handleBulkDelete = async (ids: number[]) => {
     try {
       await Promise.all(ids.map(id => deleteProduct(id).unwrap()));
       toast.success(`${ids.length} produits supprimés`);

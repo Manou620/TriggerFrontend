@@ -38,21 +38,51 @@ export const VenteForm: React.FC<VenteFormProps> = ({
   clients,
   isLoading = false
 }) => {
+  // DEBUG: See what we are getting for pre-filling
+  React.useEffect(() => {
+    if (initialValues?.id) {
+      console.log('[DEBUG] VenteForm initialValues:', initialValues);
+    }
+  }, [initialValues]);
+
   const formik = useFormik({
     initialValues: {
-      clientId: initialValues.clientId || '',
-      productId: initialValues.productId || '',
-      qteSortie: initialValues.qteSortie || 1,
+      clientId: (() => {
+        const id = initialValues.clientId ?? initialValues.client_id ?? initialValues.id_client ?? '';
+        if (id && id !== 0) return id;
+        
+        // Fallback: search by name
+        const name = initialValues.nom || initialValues.nomClient || '';
+        if (name) {
+          const client = clients.find(c => c.nom.toLowerCase() === name.toLowerCase());
+          if (client) return client.id;
+        }
+        return '';
+      })(),
+      productId: (() => {
+        const id = initialValues.productId ?? initialValues.product_id ?? initialValues.id_produit ?? '';
+        if (id && id !== 0) return id;
+        
+        // Fallback: search by design/designation
+        const design = initialValues.design || initialValues.designProduit || initialValues.designation || '';
+        if (design) {
+          const product = products.find(p => p.design.toLowerCase() === design.toLowerCase());
+          if (product) return product.id;
+        }
+        return '';
+      })(),
+      qteSortie: initialValues.qteSortie ?? initialValues.qte_sortie ?? 1,
     },
     enableReinitialize: true,
     validationSchema: Yup.object({
-      clientId: Yup.string().required('Le client est requis'),
-      productId: Yup.string().required('Le produit est requis'),
+      clientId: Yup.mixed().required('Le client est requis'),
+      productId: Yup.mixed().required('Le produit est requis'),
       qteSortie: Yup.number()
         .min(1, 'La quantité doit être au moins 1')
         .required('La quantité est requise')
         .test('stock-check', 'Stock insuffisant', function(value) {
-          const product = products.find(p => p.id === this.parent.productId);
+          const productId = Number(this.parent.productId);
+          const product = products.find(p => p.id === productId);
           // If editing, we should account for the original quantity already taken from stock
           const originalQte = initialValues.id ? initialValues.qteSortie : 0;
           return product ? (value || 0) <= (product.stock + originalQte) : true;

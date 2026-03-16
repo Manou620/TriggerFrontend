@@ -118,13 +118,13 @@ const AuditPage: React.FC = () => {
                   <td className="py-4 px-4">
                     <span className={cn(
                       "inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium",
-                      entry.typeOperation === 'AJOUT' && "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400",
-                      entry.typeOperation === 'MODIFICATION' && "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400",
-                      entry.typeOperation === 'SUPPRESSION' && "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400"
+                      entry.typeOperation.includes('AJOUT') && "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400",
+                      entry.typeOperation.includes('MODIF') && "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400",
+                      entry.typeOperation.includes('SUPPR') && "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400"
                     )}>
-                      {entry.typeOperation === 'AJOUT' && <PlusCircle className="w-3 h-3" />}
-                      {entry.typeOperation === 'MODIFICATION' && <Edit className="w-3 h-3" />}
-                      {entry.typeOperation === 'SUPPRESSION' && <Trash2 className="w-3 h-3" />}
+                      {entry.typeOperation.includes('AJOUT') && <PlusCircle className="w-3 h-3" />}
+                      {entry.typeOperation.includes('MODIF') && <Edit className="w-3 h-3" />}
+                      {entry.typeOperation.includes('SUPPR') && <Trash2 className="w-3 h-3" />}
                       {entry.typeOperation}
                     </span>
                   </td>

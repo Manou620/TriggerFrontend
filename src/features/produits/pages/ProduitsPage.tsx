@@ -40,8 +40,8 @@ const ProduitsPage: React.FC = () => {
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
-  const [selectedIds, setSelectedIds] = useState<string[]>([]);
-  const [deleteConfirm, setDeleteConfirm] = useState<{ isOpen: boolean; id: string | null; isBulk: boolean }>({
+  const [selectedIds, setSelectedIds] = useState<number[]>([]);
+  const [deleteConfirm, setDeleteConfirm] = useState<{ isOpen: boolean; id: number | null; isBulk: boolean }>({
     isOpen: false,
     id: null,
     isBulk: false
@@ -89,7 +89,7 @@ const ProduitsPage: React.FC = () => {
     setIsFormOpen(false);
   };
 
-  const toggleSelect = (id: string) => {
+  const toggleSelect = (id: number) => {
     setSelectedIds(prev => 
       prev.includes(id) ? prev.filter(i => i !== id) : [...prev, id]
     );
@@ -103,7 +103,7 @@ const ProduitsPage: React.FC = () => {
     }
   };
 
-  const confirmDelete = (id: string) => {
+  const confirmDelete = (id: number) => {
     setDeleteConfirm({ isOpen: true, id, isBulk: false });
   };
 

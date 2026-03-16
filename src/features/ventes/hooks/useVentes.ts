@@ -1,16 +1,17 @@
-import { 
-  useGetSalesQuery, 
-  selectAllSales, 
+import {
+  useGetSalesQuery,
+  selectAllSales,
   useAddSaleMutation,
   useUpdateSaleMutation,
   useDeleteSaleMutation
 } from '@/src/app/store/salesApiSlice';
-import { useGetProductsQuery, selectAllProducts } from '@/src/app/store/productsApiSlice';
+import { useGetProductsQuery, selectAllProducts, useUpdateProductMutation } from '@/src/app/store/productsApiSlice';
 import { useGetClientsQuery, selectAllClients } from '@/src/app/store/clientsApiSlice';
 import { useAddAuditEntryMutation } from '@/src/app/store/auditApiSlice';
 import { useSelector } from 'react-redux';
 import { useNotificationStore } from '@/src/app/store/notification.store';
 import { RootState } from '@/src/app/store';
+import { toast } from 'react-hot-toast';
 
 /**
  * Custom hook that orchestrates the **entire sales workflow**.
@@ -41,7 +42,7 @@ export const useVentes = () => {
   const { isLoading: productsLoading } = useGetProductsQuery();
   const { isLoading: clientsLoading } = useGetClientsQuery();
   const addNotification = useNotificationStore((state) => state.addNotification);
-  
+
   const sales = useSelector(selectAllSales);
   const products = useSelector(selectAllProducts);
   const clients = useSelector(selectAllClients);
@@ -50,25 +51,43 @@ export const useVentes = () => {
   const [addSale, { isLoading: isAdding }] = useAddSaleMutation();
   const [updateSale, { isLoading: isUpdating }] = useUpdateSaleMutation();
   const [deleteSale, { isLoading: isDeleting }] = useDeleteSaleMutation();
+  const [updateProduct] = useUpdateProductMutation();
   const [addAudit] = useAddAuditEntryMutation();
 
   const handleAddSale = async (values: any) => {
-    const product = products.find(p => p.id === values.productId);
-    const client = clients.find(c => c.id === values.clientId);
+    const productIdNum = Number(values.productId);
+    const clientIdNum = Number(values.clientId);
+    const product = products.find(p => p.id === productIdNum);
+    const client = clients.find(c => c.id === clientIdNum);
+
+    const saleRequestBody = {
+      ...values,
+      productId: productIdNum,
+      clientId: clientIdNum
+    };
 
     try {
-      const result = await addSale(values).unwrap();
-      
-      // Log to audit
-      await addAudit({
-        typeOperation: 'AJOUT',
-        nomClient: client?.nom || 'Inconnu',
-        designProduit: product?.design || 'Inconnu',
-        qteSortieAncien: 0,
-        qteSortieNouv: values.qteSortie,
-        utilisateur: user?.name || 'Système',
-      }).unwrap();
+      const result = await addSale(saleRequestBody).unwrap();
 
+      // Update product stock
+      // if (product) {
+      //   await updateProduct({
+      //     ...product,
+      //     stock: product.stock - values.qteSortie
+      //   }).unwrap();
+      // }
+
+      // Log to audit
+      // await addAudit({
+      //   typeOperation: 'AJOUT',
+      //   nomClient: client?.nom || 'Inconnu',
+      //   designProduit: product?.design || 'Inconnu',
+      //   qteSortieAncien: 0,
+      //   qteSortieNouv: values.qteSortie,
+      //   utilisateur: user?.name || 'Système',
+      // }).unwrap();
+
+      toast.success('Vente enregistrée avec succès');
       addNotification({
         type: 'success',
         title: 'Vente enregistrée',
@@ -76,6 +95,7 @@ export const useVentes = () => {
       });
       return result;
     } catch (err) {
+      toast.error("Erreur lors de l'enregistrement de la vente.");
       addNotification({
         type: 'error',
         title: 'Erreur',
@@ -86,23 +106,41 @@ export const useVentes = () => {
   };
 
   const handleUpdateSale = async (values: any) => {
-    const product = products.find(p => p.id === values.productId);
-    const client = clients.find(c => c.id === values.clientId);
+    const productIdNum = Number(values.productId);
+    const clientIdNum = Number(values.clientId);
+    const product = products.find(p => p.id === productIdNum);
+    const client = clients.find(c => c.id === clientIdNum);
     const oldSale = sales.find(s => s.id === values.id);
 
-    try {
-      const result = await updateSale(values).unwrap();
-      
-      // Log to audit
-      await addAudit({
-        typeOperation: 'MODIFICATION',
-        nomClient: client?.nom || 'Inconnu',
-        designProduit: product?.design || 'Inconnu',
-        qteSortieAncien: oldSale?.qteSortie || 0,
-        qteSortieNouv: values.qteSortie,
-        utilisateur: user?.name || 'Système',
-      }).unwrap();
+    const saleRequestUpdate = {
+      ...values,
+      productId: productIdNum,
+      clientId: clientIdNum
+    };
 
+    try {
+      const result = await updateSale(saleRequestUpdate).unwrap();
+
+      // Update product stock
+      // if (product && oldSale) {
+      //   const stockDiff = values.qteSortie - oldSale.qteSortie;
+      //   await updateProduct({
+      //     ...product,
+      //     stock: product.stock - stockDiff
+      //   }).unwrap();
+      // }
+
+      // Log to audit
+      // await addAudit({
+      //   typeOperation: 'MODIFICATION',
+      //   nomClient: client?.nom || 'Inconnu',
+      //   designProduit: product?.design || 'Inconnu',
+      //   qteSortieAncien: oldSale?.qteSortie || 0,
+      //   qteSortieNouv: values.qteSortie,
+      //   utilisateur: user?.name || 'Système',
+      // }).unwrap();
+
+      toast.success('Vente mise à jour');
       addNotification({
         type: 'success',
         title: 'Vente mise à jour',
@@ -110,6 +148,7 @@ export const useVentes = () => {
       });
       return result;
     } catch (err) {
+      toast.error("Erreur lors de la mise à jour.");
       addNotification({
         type: 'error',
         title: 'Erreur',
@@ -119,14 +158,22 @@ export const useVentes = () => {
     }
   };
 
-  const handleDeleteSale = async (id: string) => {
+  const handleDeleteSale = async (id: number) => {
     const sale = sales.find(s => s.id === id);
     const product = products.find(p => p.id === sale?.productId);
     const client = clients.find(c => c.id === sale?.clientId);
 
     try {
       await deleteSale(id).unwrap();
-      
+
+      // Update product stock (restore quantity)
+      if (product && sale) {
+        await updateProduct({
+          ...product,
+          stock: product.stock + sale.qteSortie
+        }).unwrap();
+      }
+
       // Log to audit
       await addAudit({
         typeOperation: 'SUPPRESSION',
@@ -137,12 +184,14 @@ export const useVentes = () => {
         utilisateur: user?.name || 'Système',
       }).unwrap();
 
+      toast.success('Vente supprimée');
       addNotification({
         type: 'success',
         title: 'Vente supprimée',
         message: 'La vente a été supprimée avec succès.',
       });
     } catch (err) {
+      toast.error("Erreur lors de la suppression.");
       addNotification({
         type: 'error',
         title: 'Erreur',
@@ -151,7 +200,7 @@ export const useVentes = () => {
     }
   };
 
-  const handleBulkDelete = async (ids: string[]) => {
+  const handleBulkDelete = async (ids: number[]) => {
     try {
       await Promise.all(ids.map(id => deleteSale(id).unwrap()));
       addNotification({

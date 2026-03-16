@@ -22,34 +22,83 @@ const initialState = salesAdapter.getInitialState();
  */
 export const salesApiSlice = apiSlice.injectEndpoints({
   endpoints: (builder) => ({
-    getSales: builder.query<EntityState<Sale, string>, void>({
-      query: () => '/sales',
-      transformResponse: (response: Sale[]) => {
-        return salesAdapter.setAll(initialState, response);
+    getSales: builder.query<EntityState<Sale, number>, void>({
+      query: () => '/ventes',
+      transformResponse: (response: any) => {
+        const data = Array.isArray(response) ? response : (response?.data || response?.ventes || []);
+
+        if (data.length > 0) {
+          console.log('[DEBUG] Raw Sale sample:', data[0]);
+        }
+
+        return salesAdapter.setAll(initialState, data.map((sale: any) => {
+          // Helper to extract ID from property that might be a number/string OR an object with an 'id'
+          const extractId = (val: any) => {
+            if (val === null || val === undefined) return NaN;
+            if (typeof val === 'object') {
+              // Try common ID properties inside the object
+              return Number(val.id ?? val.id_produit ?? val.idProduit ?? val.id_client ?? val.idClient ?? NaN);
+            }
+            const num = Number(val);
+            return isNaN(num) ? NaN : num;
+          };
+
+          const productId = extractId(
+            sale.productId ?? sale.product_id ?? sale.id_produit ?? sale.idProduit ?? sale.id_prod ?? sale.idprod ?? sale.product ?? sale.produit
+          );
+
+          const clientId = extractId(
+            sale.clientId ?? sale.client_id ?? sale.id_client ?? sale.idClient ?? sale.id_cli ?? sale.idcli ?? sale.client
+          );
+
+          const qteSortie = Number(sale.qteSortie ?? sale.qte_sortie ?? sale.qte_vendu ?? sale.quantite ?? 0);
+
+          const transformed = {
+            ...sale,
+            id: Number(sale.id),
+            productId: isNaN(productId) ? 0 : productId,
+            clientId: isNaN(clientId) ? 0 : clientId,
+            qteSortie: isNaN(qteSortie) ? 0 : qteSortie,
+            date: sale.date ?? sale.created_at ?? sale.date_vente ?? new Date().toISOString(),
+            status: sale.status ?? 'En attente'
+          };
+
+          return transformed;
+        }));
       },
       providesTags: (result) =>
         result
           ? [
-              ...result.ids.map((id) => ({ type: 'Sale' as const, id })),
-              { type: 'Sale', id: 'LIST' },
-            ]
+            ...result.ids.map((id) => ({ type: 'Sale' as const, id })),
+            { type: 'Sale', id: 'LIST' },
+          ]
           : [{ type: 'Sale', id: 'LIST' }],
     }),
     addSale: builder.mutation<Sale, Partial<Sale>>({
       query: (sale) => ({
-        url: '/sales',
+        url: '/ventes',
         method: 'POST',
         body: { ...sale, date: new Date().toISOString(), status: 'En attente' },
       }),
-      invalidatesTags: [{ type: 'Sale', id: 'LIST' }, { type: 'Audit', id: 'LIST' }],
+      invalidatesTags: [
+        { type: 'Sale', id: 'LIST' },
+        { type: 'Audit', id: 'LIST' },
+        { type: 'Audit', id: 'STATS' },
+        { type: 'Product', id: 'LIST' }
+      ],
     }),
     updateSale: builder.mutation<Sale, Partial<Sale>>({
       query: (sale) => ({
-        url: `/sales/${sale.id}`,
-        method: 'PATCH',
+        url: `/ventes/${sale.id}`,
+        method: 'PUT',
         body: sale,
       }),
-      invalidatesTags: (result, error, arg) => [{ type: 'Sale', id: arg.id }, { type: 'Audit', id: 'LIST' }],
+      invalidatesTags: (result, error, arg) => [
+        { type: 'Sale', id: arg.id },
+        { type: 'Audit', id: 'LIST' },
+        { type: 'Audit', id: 'STATS' },
+        { type: 'Product', id: arg.productId }
+      ],
       async onQueryStarted({ id, ...patch }, { dispatch, queryFulfilled }) {
         const patchResult = dispatch(
           salesApiSlice.util.updateQueryData('getSales', undefined, (draft) => {
@@ -63,12 +112,16 @@ export const salesApiSlice = apiSlice.injectEndpoints({
         }
       },
     }),
-    deleteSale: builder.mutation<{ success: boolean; id: string }, string>({
+    deleteSale: builder.mutation<{ success: boolean; id: number }, number>({
       query: (id) => ({
-        url: `/sales/${id}`,
+        url: `/ventes/${id}`,
         method: 'DELETE',
       }),
-      invalidatesTags: (result, error, id) => [{ type: 'Sale', id }, { type: 'Audit', id: 'LIST' }],
+      invalidatesTags: (result, error, id) => [
+        { type: 'Sale', id },
+        { type: 'Audit', id: 'LIST' },
+        { type: 'Audit', id: 'STATS' }
+      ],
       async onQueryStarted(id, { dispatch, queryFulfilled }) {
         const patchResult = dispatch(
           salesApiSlice.util.updateQueryData('getSales', undefined, (draft) => {

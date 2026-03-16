@@ -43,8 +43,8 @@ const ClientsPage: React.FC = () => {
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingClient, setEditingClient] = useState<Client | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
-  const [selectedIds, setSelectedIds] = useState<string[]>([]);
-  const [confirmDelete, setConfirmDelete] = useState<{ isOpen: boolean; id: string | null; isBulk: boolean }>({
+  const [selectedIds, setSelectedIds] = useState<number[]>([]);
+  const [confirmDelete, setConfirmDelete] = useState<{ isOpen: boolean; id: number | null; isBulk: boolean }>({
     isOpen: false,
     id: null,
     isBulk: false,
@@ -95,7 +95,7 @@ const ClientsPage: React.FC = () => {
     setIsFormOpen(false);
   };
 
-  const toggleSelection = (id: string) => {
+  const toggleSelection = (id: number) => {
     setSelectedIds(prev => 
       prev.includes(id) ? prev.filter(i => i !== id) : [...prev, id]
     );
@@ -109,7 +109,7 @@ const ClientsPage: React.FC = () => {
     }
   };
 
-  const openDeleteConfirm = (id: string) => {
+  const openDeleteConfirm = (id: number) => {
     setConfirmDelete({ isOpen: true, id, isBulk: false });
   };
 

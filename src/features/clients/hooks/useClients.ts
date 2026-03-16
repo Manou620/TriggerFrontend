@@ -1,12 +1,13 @@
-import { 
-  useGetClientsQuery, 
-  selectAllClients, 
-  useAddClientMutation, 
-  useUpdateClientMutation, 
-  useDeleteClientMutation 
+import {
+  useGetClientsQuery,
+  selectAllClients,
+  useAddClientMutation,
+  useUpdateClientMutation,
+  useDeleteClientMutation
 } from '@/src/app/store/clientsApiSlice';
 import { useSelector } from 'react-redux';
 import { useNotificationStore } from '@/src/app/store/notification.store';
+import { toast } from 'react-hot-toast';
 
 /**
  * Custom hook that provides all client-related data and CRUD operations.
@@ -36,12 +37,14 @@ export const useClients = () => {
   const handleAddClient = async (client: any) => {
     try {
       await addClient(client).unwrap();
+      toast.success('Client ajouté avec succès');
       addNotification({
         type: 'success',
         title: 'Client ajouté',
         message: `Le client ${client.nom} a été ajouté avec succès.`,
       });
     } catch (err) {
+      toast.error("Erreur lors de l'ajout du client.");
       addNotification({
         type: 'error',
         title: 'Erreur',
@@ -53,12 +56,14 @@ export const useClients = () => {
   const handleUpdateClient = async (client: any) => {
     try {
       await updateClient(client).unwrap();
+      toast.success('Client mis à jour');
       addNotification({
         type: 'success',
         title: 'Client mis à jour',
         message: `Le client ${client.nom} a été mis à jour.`,
       });
     } catch (err) {
+      toast.error("Erreur lors de la mise à jour.");
       addNotification({
         type: 'error',
         title: 'Erreur',
@@ -67,15 +72,17 @@ export const useClients = () => {
     }
   };
 
-  const handleDeleteClient = async (id: string) => {
+  const handleDeleteClient = async (id: number) => {
     try {
       await deleteClient(id).unwrap();
+      toast.success('Client supprimé');
       addNotification({
         type: 'success',
         title: 'Client supprimé',
         message: 'Le client a été supprimé avec succès.',
       });
     } catch (err) {
+      toast.error("Erreur lors de la suppression, le client est peut-etre utilisé");
       addNotification({
         type: 'error',
         title: 'Erreur',
@@ -84,7 +91,7 @@ export const useClients = () => {
     }
   };
 
-  const handleBulkDelete = async (ids: string[]) => {
+  const handleBulkDelete = async (ids: number[]) => {
     try {
       await Promise.all(ids.map(id => deleteClient(id).unwrap()));
       addNotification({

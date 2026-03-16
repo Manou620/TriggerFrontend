@@ -33,17 +33,22 @@ export const clientsApiSlice = apiSlice.injectEndpoints({
   endpoints: (builder) => ({
 
     /** GET /clients → Fetch all clients and normalize into Entity Adapter state. */
-    getClients: builder.query<EntityState<Client, string>, void>({
+    getClients: builder.query<EntityState<Client, number>, void>({
       query: () => '/clients',
-      transformResponse: (response: Client[]) => {
-        return clientsAdapter.setAll(initialState, response);
+      transformResponse: (response: any) => {
+        const data = Array.isArray(response) ? response : (response?.data || response?.clients || []);
+        const transformedData = data.map((client: any) => ({
+          ...client,
+          id: Number(client.id)
+        }));
+        return clientsAdapter.setAll(initialState, transformedData);
       },
       providesTags: (result) =>
         result
           ? [
-              ...result.ids.map((id) => ({ type: 'Client' as const, id })),
-              { type: 'Client', id: 'LIST' },
-            ]
+            ...result.ids.map((id) => ({ type: 'Client' as const, id })),
+            { type: 'Client', id: 'LIST' },
+          ]
           : [{ type: 'Client', id: 'LIST' }],
     }),
 
@@ -92,7 +97,7 @@ export const clientsApiSlice = apiSlice.injectEndpoints({
      * Uses **optimistic delete**: the client is removed from the cache
      * instantly, and restored if the server request fails.
      */
-    deleteClient: builder.mutation<{ success: boolean; id: string }, string>({
+    deleteClient: builder.mutation<{ success: boolean; id: number }, number>({
       query: (id) => ({
         url: `/clients/${id}`,
         method: 'DELETE',
